@@ -57,37 +57,37 @@ The system follows a **client-server architecture** and prevents issues like **d
 
 ## Communication Protocol
 
-| Command        | Description                  |
-|----------------|------------------------------|
-| `BOOK <seat>` | Book a specific seat         |
-| `VIEW`        | View available seats         |
-| `EXIT`        | Disconnect from server       |
+| Command | Description |
+|--------|------------|
+| `BOOK <seat1> <seat2> ...` | Book one or more seats |
+| `VIEW` | View available seats |
+| `EXIT` | Disconnect from server |
 
 ## Example
 
 ### Client Interaction
 
 Client 1:
-> **BOOK A1**  
-> A1 booked successfully
+> **BOOK A1 A2**  
+> Booked: A1, A2
 
 Client 2:
-> **BOOK A1**  
-> A1 already booked
+> **BOOK A2 A3**  
+> Already booked: A2 | Booked: A3
 
 Client 3:
 > **VIEW**  
-> Available seats: A2, A3
+> Available: A4, A5, A6
 
 Client 1:
 > **EXIT**  
-> Disconnected from server
+> Goodbye!
 
-## 🚀 How to Run
+## How to Run
 
 ### 1. Clone Repository
 ```bash
-git clone https://github.com/Shreecharana24/Distributed-Reservation-System-with-Concurrency-Control
+git clone https://github.com/Shreecharana24/Distributed-Reservation-System-with-Concurrency-Control.git
 cd Distributed-Reservation-System-with-Concurrency-Control
 ```
 
