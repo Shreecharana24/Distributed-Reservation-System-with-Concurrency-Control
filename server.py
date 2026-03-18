@@ -2,11 +2,7 @@ import socket
 import threading
 
 # Shared resources
-seats = {
-    "A1": None,
-    "A2": None,
-    "A3": None
-}
+seats = {f"A{i}": None for i in range(1, 21)}
 
 # Lock for concurrency control
 lock = threading.Lock()
@@ -30,19 +26,37 @@ def handle_client(conn, addr):
             # PROTOCOL
 
             if parts[0] == "BOOK":
-                if len(parts) != 2:
-                    response = "Invalid format. Use: BOOK <seat>"
+                if len(parts) < 2:
+                    response = "Invalid format. Use: BOOK <seat1> <seat2> ..."
                 else:
-                    seat = parts[1].upper()
+                    requested_seats = [s.upper() for s in parts[1:]]
+                    booked = []
+                    already = []
+                    invalid = []
+
                     with lock:
-                        if seat not in seats:
-                            response = "Invalid seat"
-                        elif seats[seat] is None:
-                            seats[seat] = addr
-                            response = f"{seat} booked successfully"
-                        else:
-                            response = f"{seat} already booked"
-                        print(f"[SEATS] {seats}")  
+                        for seat in requested_seats:
+                            if seat not in seats:
+                                invalid.append(seat)
+                            elif seats[seat] is None:
+                                seats[seat] = addr
+                                booked.append(seat)
+                            else:
+                                already.append(seat)
+                        print(f"[SEATS] {seats}")
+
+                    response_parts = []
+                    if booked:
+                        response_parts.append("Booked: " + ", ".join(booked))
+                    if already:
+                        response_parts.append("Already booked: " + ", ".join(already))
+                    if invalid:
+                        response_parts.append("Invalid: " + ", ".join(invalid))
+                    
+                    if response_parts:
+                        response = " | ".join(response_parts)
+                    else:
+                        response = "No valid seats provided" 
             elif parts[0] == "VIEW":
                 available = [s for s, v in seats.items() if v is None]
                 if available:
