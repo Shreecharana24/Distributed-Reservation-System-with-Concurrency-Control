@@ -1,5 +1,6 @@
 import socket
 import threading
+import ssl
 
 # Shared resources
 seats = {f"A{i}": None for i in range(1, 21)}
@@ -83,10 +84,13 @@ def start_server():
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.bind(('localhost', 9999))
     server.listen(5)
+    context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+    context.load_cert_chain(certfile="cert.pem", keyfile="key.pem")
     print("[SERVER STARTED] Listening on port 9999...")
 
     while True:
         conn, addr = server.accept()
+        conn = context.wrap_socket(conn, server_side=True)
         thread = threading.Thread(target=handle_client, args=(conn, addr))
         thread.start() 
 
