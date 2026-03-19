@@ -1,9 +1,8 @@
-
-```markdown
 # Distributed Reservation System with Concurrency Control
 
 ## Project Overview
-This project implements a **network-based distributed reservation system** using low-level socket programming in Python.  
+
+This project implements a **network-based distributed reservation system** using low-level socket programming in Python.
 It ensures **atomic and consistent booking of shared resources** under multiple concurrent client requests.
 
 The system follows a **client-server architecture** and prevents issues like **double booking** using concurrency control mechanisms.
@@ -11,89 +10,96 @@ The system follows a **client-server architecture** and prevents issues like **d
 ---
 
 ## Objectives
-- Implement TCP socket communication  
-- Handle multiple concurrent clients  
-- Ensure data consistency and atomicity  
-- Prevent race conditions and double booking  
-- Design a custom request-response protocol  
-- Evaluate system performance under load  
+
+* Implement TCP socket communication
+* Handle multiple concurrent clients
+* Ensure data consistency and atomicity
+* Prevent race conditions and double booking
+* Design a custom request-response protocol
+* Evaluate system performance under load
 
 ---
 
 ## Architecture
 
 ```
-
 Frontend (React - HTTPS)
-↓
+        ↓
 Flask API (HTTPS - TLS)
-↓
+        ↓
 TCP Server (SSL/TLS + Threads)
-
 ```
 
-### Components
+---
+
+## Components
 
 **1. TCP Server (`server.py`)**
-- Handles multiple clients using threads  
-- Maintains shared seat data  
-- Uses locks to prevent race conditions  
+
+* Handles multiple clients using threads
+* Maintains shared seat data
+* Uses locks to prevent race conditions
 
 **2. Flask Backend (`app.py`)**
-- Acts as an API layer  
-- Communicates with TCP server using SSL  
-- Exposes REST endpoints  
+
+* Acts as an API layer
+* Communicates with TCP server using SSL
+* Exposes REST endpoints
 
 **3. Client (`client.py`)**
-- CLI-based TCP client  
-- Sends commands to server securely  
+
+* CLI-based TCP client
+* Sends commands to server securely
 
 **4. Frontend (`frontend/`)**
-- React (Vite) application  
-- Calls Flask API over HTTPS  
+
+* React (Vite) application
+* Calls Flask API over HTTPS
 
 ---
 
 ## Technologies Used
-- Python  
-- Socket Programming (`socket`)  
-- Multithreading (`threading`)  
-- SSL/TLS (`ssl`)  
-- Flask  
-- React (Vite)  
+
+* Python
+* Socket Programming (`socket`)
+* Multithreading (`threading`)
+* SSL/TLS (`ssl`)
+* Flask
+* React (Vite)
 
 ---
 
 ## Features
 
 ### Core Features
-- Multi-client support  
-- Real-time booking system  
-- Prevention of double booking  
-- Custom communication protocol  
+
+* Multi-client support
+* Real-time booking system
+* Prevention of double booking
+* Custom communication protocol
 
 ### Advanced Features
-- Concurrency control using locks  
-- Secure communication (SSL/TLS)  
-- REST API layer (Flask)  
-- Web frontend (React)  
+
+* Concurrency control using locks
+* Secure communication (SSL/TLS)
+* REST API layer (Flask)
+* Web frontend (React)
 
 ---
 
 ## Communication Protocol
 
-| Command | Description |
-|--------|------------|
-| `BOOK <seat1> <seat2> ...` | Book seats |
-| `VIEW` | View available seats |
-| `EXIT` | Disconnect |
+| Command                    | Description          |
+| -------------------------- | -------------------- |
+| `BOOK <seat1> <seat2> ...` | Book seats           |
+| `VIEW`                     | View available seats |
+| `EXIT`                     | Disconnect           |
 
 ---
 
 ## Project Structure
 
 ```
-
 Reservation system/
 ├── server.py
 ├── client.py
@@ -103,18 +109,18 @@ Reservation system/
 │   ├── package.json
 │   ├── vite.config.js
 ├── README.md
-
-````
+```
 
 ---
 
-## Setup Guide (Step-by-Step)
+## Setup Guide
 
 ### Step 1: Clone Repository
+
 ```bash
 git clone <your-repo-link>
 cd Reservation\ system
-````
+```
 
 ---
 
@@ -138,35 +144,20 @@ cd ..
 
 ---
 
-### Step 3: Setup SSL (IMPORTANT)
-
-Install dependency:
+### Step 3: Setup SSL
 
 ```bash
 sudo apt install libnss3-tools
-```
 
-Install mkcert:
-
-```bash
 curl -JLO https://dl.filippo.io/mkcert/latest?for=linux/amd64
 chmod +x mkcert-v*-linux-amd64
 sudo mv mkcert-v*-linux-amd64 /usr/local/bin/mkcert
-```
 
-Initialize mkcert:
-
-```bash
 mkcert -install
-```
-
-Generate certificate:
-
-```bash
 mkcert localhost
 ```
 
-This creates:
+Generated files:
 
 ```
 localhost.pem
@@ -177,7 +168,7 @@ Place them in the root folder.
 
 ---
 
-### Step 4: Run the System (IMPORTANT ORDER)
+### Step 4: Run the System
 
 #### 1. Start TCP Server
 
@@ -185,7 +176,7 @@ Place them in the root folder.
 python server.py
 ```
 
-#### 2. Start Flask Backend (HTTPS)
+#### 2. Start Flask Backend
 
 ```bash
 python app.py
@@ -280,12 +271,6 @@ Available: A4, A5
 
 * Uses locally trusted certificates via mkcert
 
----
-
-## Notes
-
-* Do not upload `.pem` or `.key` files to GitHub
-* Generate certificates locally using mkcert
 
 ---
 
@@ -297,11 +282,3 @@ This project demonstrates:
 * Secure communication using TLS
 * Concurrency control in real-world systems
 * Integration of low-level networking with modern web technologies
-
-```
-
----
-
-If you want next upgrade:
-- I can add **badges + screenshots + demo section** to make your GitHub look top-tier.
-```
