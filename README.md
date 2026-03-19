@@ -1,3 +1,5 @@
+
+```markdown
 # Distributed Reservation System with Concurrency Control
 
 ## Project Overview
@@ -19,15 +21,36 @@ The system follows a **client-server architecture** and prevents issues like **d
 ---
 
 ## Architecture
-- **Server**
-  - Handles multiple clients using threads  
-  - Maintains shared resource state (e.g., seats)  
-  - Applies concurrency control (locking)  
 
-- **Clients**
-  - Connect to server via TCP  
-  - Send booking/view requests  
-  - Receive responses  
+```
+
+Frontend (React - HTTPS)
+↓
+Flask API (HTTPS - TLS)
+↓
+TCP Server (SSL/TLS + Threads)
+
+```
+
+### Components
+
+**1. TCP Server (`server.py`)**
+- Handles multiple clients using threads  
+- Maintains shared seat data  
+- Uses locks to prevent race conditions  
+
+**2. Flask Backend (`app.py`)**
+- Acts as an API layer  
+- Communicates with TCP server using SSL  
+- Exposes REST endpoints  
+
+**3. Client (`client.py`)**
+- CLI-based TCP client  
+- Sends commands to server securely  
+
+**4. Frontend (`frontend/`)**
+- React (Vite) application  
+- Calls Flask API over HTTPS  
 
 ---
 
@@ -35,7 +58,9 @@ The system follows a **client-server architecture** and prevents issues like **d
 - Python  
 - Socket Programming (`socket`)  
 - Multithreading (`threading`)  
-- SSL/TLS (`ssl`) *(for secure communication)*  
+- SSL/TLS (`ssl`)  
+- Flask  
+- React (Vite)  
 
 ---
 
@@ -49,9 +74,9 @@ The system follows a **client-server architecture** and prevents issues like **d
 
 ### Advanced Features
 - Concurrency control using locks  
-- Error handling for disconnections  
-- Scalable design  
 - Secure communication (SSL/TLS)  
+- REST API layer (Flask)  
+- Web frontend (React)  
 
 ---
 
@@ -59,44 +84,224 @@ The system follows a **client-server architecture** and prevents issues like **d
 
 | Command | Description |
 |--------|------------|
-| `BOOK <seat1> <seat2> ...` | Book one or more seats |
+| `BOOK <seat1> <seat2> ...` | Book seats |
 | `VIEW` | View available seats |
-| `EXIT` | Disconnect from server |
+| `EXIT` | Disconnect |
 
-## Example
+---
 
-### Client Interaction
+## Project Structure
 
-Client 1:
-> **BOOK A1 A2**  
-> Booked: A1, A2
-
-Client 2:
-> **BOOK A2 A3**  
-> Already booked: A2 | Booked: A3
-
-Client 3:
-> **VIEW**  
-> Available: A4, A5, A6
-
-Client 1:
-> **EXIT**  
-> Goodbye!
-
-## How to Run
-
-### 1. Clone Repository
-```bash
-git clone https://github.com/Shreecharana24/Distributed-Reservation-System-with-Concurrency-Control.git
-cd Distributed-Reservation-System-with-Concurrency-Control
 ```
 
-### 2. Run Server
+Reservation system/
+├── server.py
+├── client.py
+├── app.py
+├── frontend/
+│   ├── src/
+│   ├── package.json
+│   ├── vite.config.js
+├── README.md
+
+````
+
+---
+
+## Setup Guide (Step-by-Step)
+
+### Step 1: Clone Repository
+```bash
+git clone <your-repo-link>
+cd Reservation\ system
+````
+
+---
+
+### Step 2: Install Requirements
+
+#### Backend
+
+```bash
+python -m venv venv
+source venv/bin/activate
+pip install flask flask-cors
+```
+
+#### Frontend
+
+```bash
+cd frontend
+npm install
+cd ..
+```
+
+---
+
+### Step 3: Setup SSL (IMPORTANT)
+
+Install dependency:
+
+```bash
+sudo apt install libnss3-tools
+```
+
+Install mkcert:
+
+```bash
+curl -JLO https://dl.filippo.io/mkcert/latest?for=linux/amd64
+chmod +x mkcert-v*-linux-amd64
+sudo mv mkcert-v*-linux-amd64 /usr/local/bin/mkcert
+```
+
+Initialize mkcert:
+
+```bash
+mkcert -install
+```
+
+Generate certificate:
+
+```bash
+mkcert localhost
+```
+
+This creates:
+
+```
+localhost.pem
+localhost-key.pem
+```
+
+Place them in the root folder.
+
+---
+
+### Step 4: Run the System (IMPORTANT ORDER)
+
+#### 1. Start TCP Server
+
 ```bash
 python server.py
 ```
 
-### 3. Run Client (multiple terminals)
+#### 2. Start Flask Backend (HTTPS)
+
+```bash
+python app.py
+```
+
+Open:
+
+```
+https://localhost:5000
+```
+
+#### 3. Start Frontend
+
+```bash
+cd frontend
+npm run dev
+```
+
+Open:
+
+```
+https://localhost:5173
+```
+
+#### 4. Run CLI Client (Optional)
+
 ```bash
 python client.py
+```
+
+---
+
+## API Endpoints
+
+### GET /api/seats
+
+Returns all seats and availability.
+
+### POST /api/book
+
+```json
+{
+  "seats": ["A1", "A2"]
+}
+```
+
+---
+
+## Example Interaction
+
+Client 1:
+
+```
+BOOK A1 A2
+Booked: A1, A2
+```
+
+Client 2:
+
+```
+BOOK A2 A3
+Already booked: A2 | Booked: A3
+```
+
+Client 3:
+
+```
+VIEW
+Available: A4, A5
+```
+
+---
+
+## Concurrency Control
+
+* Uses `threading.Lock()`
+* Ensures:
+
+  * Atomic booking
+  * No race conditions
+  * No double booking
+
+---
+
+## Security
+
+* TLS encryption between:
+
+  * Client ↔ Server
+  * Flask ↔ TCP server
+  * Frontend ↔ Flask
+
+* Uses locally trusted certificates via mkcert
+
+---
+
+## Notes
+
+* Do not upload `.pem` or `.key` files to GitHub
+* Generate certificates locally using mkcert
+
+---
+
+## Conclusion
+
+This project demonstrates:
+
+* Distributed system design
+* Secure communication using TLS
+* Concurrency control in real-world systems
+* Integration of low-level networking with modern web technologies
+
+```
+
+---
+
+If you want next upgrade:
+- I can add **badges + screenshots + demo section** to make your GitHub look top-tier.
 ```
