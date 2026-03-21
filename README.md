@@ -118,8 +118,8 @@ Reservation system/
 ### Step 1: Clone Repository
 
 ```bash
-git clone https://github.com/Shreecharana24/Distributed-Reservation-System-with-Concurrency-Control
-cd Reservation\ system
+git clone https://github.com/Shreecharana24/Distributed-Reservation-System-with-Concurrency-Control.git
+cd Distributed-Reservation-System-with-Concurrency-Control
 ```
 
 ---
