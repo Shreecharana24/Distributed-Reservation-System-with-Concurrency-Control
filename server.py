@@ -58,6 +58,45 @@ def handle_client(conn, addr):
                         response = " | ".join(response_parts)
                     else:
                         response = "No valid seats provided" 
+            elif parts[0] == "CANCEL":
+                if len(parts) < 2:
+                    response = "Invalid format. Use: CANCEL <seat1> <seat2> ..."
+                else:
+                    requested_seats = [s.upper() for s in parts[1:]]
+
+                    cancelled = []
+                    not_booked = []
+                    not_owner = []
+                    invalid = []
+
+                    with lock:
+                        for seat in requested_seats:
+                            if seat not in seats:
+                                invalid.append(seat)
+                            elif seats[seat] is None:
+                                not_booked.append(seat)
+                            elif seats[seat] != addr:
+                                not_owner.append(seat)
+                            else:
+                                seats[seat] = None
+                                cancelled.append(seat)
+
+                        print(f"[SEATS] {seats}")
+
+                    response_parts = []
+                    if cancelled:
+                        response_parts.append("Cancelled: " + ", ".join(cancelled))
+                    if not_booked:
+                        response_parts.append("Not booked: " + ", ".join(not_booked))
+                    if not_owner:
+                        response_parts.append("Not your booking: " + ", ".join(not_owner))
+                    if invalid:
+                        response_parts.append("Invalid: " + ", ".join(invalid))
+
+                    if response_parts:
+                        response = " | ".join(response_parts)
+                    else:
+                        response = "No valid seats provided"
             elif parts[0] == "VIEW":
                 available = [s for s, v in seats.items() if v is None]
                 if available:
@@ -82,6 +121,7 @@ def handle_client(conn, addr):
 
 def start_server():
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     server.bind(('localhost', 9999))
     server.listen(5)
     context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)

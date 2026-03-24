@@ -10,7 +10,7 @@ TCP_HOST = "localhost"
 TCP_PORT = 9999
 
 
-# 🔐 Create SSL connection to TCP server
+# Create SSL connection to TCP server
 def get_tcp_connection():
     raw_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -25,7 +25,7 @@ def get_tcp_connection():
     return secure_socket
 
 
-# 🔄 Send command to TCP server
+# Send command to TCP server
 def send_command(command: str) -> str:
     conn = get_tcp_connection()
     try:
@@ -39,12 +39,7 @@ def send_command(command: str) -> str:
         except:
             pass
         conn.close()
-
-
-# ─────────────────────────────
-# API ROUTES
-# ─────────────────────────────
-
+ 
 @app.route("/")
 def home():
     return "Flask API is running 🚀"
@@ -105,7 +100,46 @@ def book_seats():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route("/api/cancel", methods=["POST"])
+def cancel_seats():
+    data = request.get_json()
 
+    if not data or "seats" not in data or not data["seats"]:
+        return jsonify({"error": "Provide seats"}), 400
+
+    seats_list = [s.strip().upper() for s in data["seats"]]
+    command = "CANCEL " + " ".join(seats_list)
+
+    try:
+        raw = send_command(command)
+
+        result = {
+            "cancelled": [],
+            "not_booked": [],
+            "not_owner": [],
+            "invalid": []
+        }
+
+        for part in raw.split("|"):
+            part = part.strip()
+
+            if part.startswith("Cancelled:"):
+                result["cancelled"] = [s.strip() for s in part.replace("Cancelled:", "").split(",") if s.strip()]
+
+            elif part.startswith("Not booked:"):
+                result["not_booked"] = [s.strip() for s in part.replace("Not booked:", "").split(",") if s.strip()]
+
+            elif part.startswith("Not your booking:"):
+                result["not_owner"] = [s.strip() for s in part.replace("Not your booking:", "").split(",") if s.strip()]
+
+            elif part.startswith("Invalid:"):
+                result["invalid"] = [s.strip() for s in part.replace("Invalid:", "").split(",") if s.strip()]
+
+        return jsonify(result)
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
 @app.route("/api/health", methods=["GET"])
 def health():
     try:
@@ -121,10 +155,7 @@ def health():
     except Exception as e:
         return jsonify({"status": "error", "detail": str(e)}), 503
 
-
-# ─────────────────────────────
-# RUN FLASK (🔐 FIXED HERE)
-# ─────────────────────────────
+# RUN FLASK 
 
 if __name__ == "__main__":
     print("Flask running at https://localhost:5000")
@@ -132,5 +163,5 @@ if __name__ == "__main__":
     app.run(
         debug=True,
         port=5000,
-        ssl_context=("localhost.pem", "localhost-key.pem")  # ✅ IMPORTANT FIX
+        ssl_context=("localhost.pem", "localhost-key.pem") 
     )
