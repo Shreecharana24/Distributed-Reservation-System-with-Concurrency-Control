@@ -2,6 +2,7 @@ import socket
 import ssl
 from flask import Flask, jsonify, request
 from flask_cors import CORS
+import time
 
 app = Flask(__name__)
 CORS(app)
@@ -9,6 +10,10 @@ CORS(app)
 TCP_HOST = "localhost"
 TCP_PORT = 9999
 
+metrics = {
+    "latencies": [],
+    "timestamps": []
+}
 
 # Create SSL connection to TCP server
 def get_tcp_connection():
@@ -26,12 +31,13 @@ def get_tcp_connection():
 
 
 # Send command to TCP server
-def send_command(command: str) -> str:
+def send_command(command: str) -> tuple[str, float]:
+    start = time.time()
+
     conn = get_tcp_connection()
     try:
         conn.send(command.encode())
         response = conn.recv(4096).decode()
-        return response
     finally:
         try:
             conn.send("EXIT".encode())
@@ -39,6 +45,18 @@ def send_command(command: str) -> str:
         except:
             pass
         conn.close()
+
+    end = time.time()
+    latency = end - start
+
+    metrics["latencies"].append(latency)
+    metrics["timestamps"].append(time.time())
+
+    if len(metrics["latencies"]) > 100:
+        metrics["latencies"].pop(0)
+        metrics["timestamps"].pop(0)
+
+    return response, latency
  
 @app.route("/")
 def home():
@@ -48,7 +66,7 @@ def home():
 @app.route("/api/seats", methods=["GET"])
 def view_seats():
     try:
-        raw = send_command("VIEW")
+        raw, latency = send_command("VIEW")
 
         if raw.startswith("Available:"):
             available = [s.strip() for s in raw.replace("Available:", "").split(",") if s.strip()]
@@ -79,7 +97,7 @@ def book_seats():
     command = "BOOK " + " ".join(seats_list)
 
     try:
-        raw = send_command(command)
+        raw, latency = send_command(command)
 
         result = {"booked": [], "already_booked": [], "invalid": []}
 
@@ -111,7 +129,7 @@ def cancel_seats():
     command = "CANCEL " + " ".join(seats_list)
 
     try:
-        raw = send_command(command)
+        raw, latency = send_command(command)
 
         result = {
             "cancelled": [],
@@ -154,6 +172,24 @@ def health():
 
     except Exception as e:
         return jsonify({"status": "error", "detail": str(e)}), 503
+
+@app.route("/api/metrics", methods=["GET"])
+def get_metrics():
+    now = time.time()
+
+    recent_requests = [t for t in metrics["timestamps"] if now - t <= 5]
+    throughput = len(recent_requests) / 5  # req/sec
+    recent_latencies = metrics["latencies"][-10:]
+
+    if recent_latencies:
+        avg_latency = sum(recent_latencies) / len(recent_latencies)
+    else:
+        avg_latency = 0
+
+    return jsonify({
+        "throughput": round(throughput, 2),
+        "avg_latency": round(avg_latency, 5)
+    })
 
 # RUN FLASK 
 
