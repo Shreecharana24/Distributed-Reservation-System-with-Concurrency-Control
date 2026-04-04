@@ -1,6 +1,7 @@
 import socket
 import threading
 import ssl
+import os
 
 # Shared resources
 seats = {f"A{i}": None for i in range(1, 21)}
@@ -66,7 +67,6 @@ def handle_client(conn, addr):
 
                     cancelled = []
                     not_booked = []
-                    not_owner = []
                     invalid = []
 
                     with lock:
@@ -75,9 +75,8 @@ def handle_client(conn, addr):
                                 invalid.append(seat)
                             elif seats[seat] is None:
                                 not_booked.append(seat)
-                            elif seats[seat] != addr:
-                                not_owner.append(seat)
                             else:
+                                # CANCEL is allowed from any connection since Flask verified ownership
                                 seats[seat] = None
                                 cancelled.append(seat)
 
@@ -88,8 +87,6 @@ def handle_client(conn, addr):
                         response_parts.append("Cancelled: " + ", ".join(cancelled))
                     if not_booked:
                         response_parts.append("Not booked: " + ", ".join(not_booked))
-                    if not_owner:
-                        response_parts.append("Not your booking: " + ", ".join(not_owner))
                     if invalid:
                         response_parts.append("Invalid: " + ", ".join(invalid))
 
@@ -120,19 +117,50 @@ def handle_client(conn, addr):
         
 
 def start_server():
+    # Certificate files (mkcert generated localhost certificates)
+    cert_file = "localhost.pem"
+    key_file = "localhost-key.pem"
+    
+    # Check for certificates
+    if not os.path.exists(cert_file) or not os.path.exists(key_file):
+        print(f"[WARNING] Certificates not found: {cert_file}, {key_file}")
+        print("[INFO] Generating self-signed certificates...")
+        try:
+            import subprocess
+            subprocess.run([
+                "openssl", "req", "-x509", "-newkey", "rsa:4096",
+                "-keyout", key_file, "-out", cert_file,
+                "-days", "365", "-nodes",
+                "-subj", "/CN=localhost",
+                "-addext", "subjectAltName=DNS:localhost,IP:127.0.0.1"
+            ], check=True, capture_output=True)
+            print("[INFO] Certificates generated successfully")
+        except Exception as e:
+            print(f"[ERROR] Failed to generate certificates: {e}")
+            print("[INFO] Please generate certificates manually:")
+            print("openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 365 -nodes -subj '/CN=localhost'")
+            return
+
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     server.bind(('localhost', 9999))
     server.listen(5)
+    
     context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
-    context.load_cert_chain(certfile="cert.pem", keyfile="key.pem")
+    context.load_cert_chain(certfile=cert_file, keyfile=key_file)
+    
     print("[SERVER STARTED] Listening on port 9999...")
+    print(f"[TLS] Using certificates: {cert_file}, {key_file}")
 
     while True:
-        conn, addr = server.accept()
-        conn = context.wrap_socket(conn, server_side=True)
-        thread = threading.Thread(target=handle_client, args=(conn, addr))
-        thread.start() 
+        try:
+            conn, addr = server.accept()
+            conn = context.wrap_socket(conn, server_side=True)
+            thread = threading.Thread(target=handle_client, args=(conn, addr))
+            thread.daemon = True
+            thread.start()
+        except Exception as e:
+            print(f"[ERROR] Server error: {e}")
 
 if __name__ == "__main__":
     start_server()
