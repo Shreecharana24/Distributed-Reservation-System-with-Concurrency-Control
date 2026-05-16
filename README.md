@@ -56,6 +56,11 @@ TCP Server (SSL/TLS + Threads)
 * React (Vite) application
 * Calls Flask API over HTTPS
 
+**5. Database (`database.py`)**
+* SQLite database for persistent storage
+* Thread-local connections for concurrency safety
+* Stores seat state, user accounts, and booking records
+
 ---
 
 ## Technologies Used
@@ -66,6 +71,8 @@ TCP Server (SSL/TLS + Threads)
 * SSL/TLS (`ssl`)
 * Flask
 * React (Vite)
+* SQLite (`sqlite3`)
+* bcrypt (password hashing)
 
 ---
 
@@ -132,7 +139,7 @@ cd Distributed-Reservation-System-with-Concurrency-Control
 ```bash
 python -m venv venv
 source venv/bin/activate
-pip install flask flask-cors
+pip install flask flask-cors bcrypt
 ```
 
 #### Frontend
@@ -234,7 +241,7 @@ Returns all seats and availability.
 
 Cancel booked seats
 
-### /api/auth/register 
+### POST /api/auth/register 
 
 Register a new user
 
