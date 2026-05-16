@@ -4,7 +4,6 @@ import ssl
 import os
 import time
 import sys
-sys.path.append('/home/hemant/Desktop/project')
 import database
 
 HOST = '0.0.0.0'
@@ -79,7 +78,7 @@ def save_seat_to_database(seat_id, booked_by, username):
 
 def generate_cert():
     """Generate self-signed certificate"""
-    server_ip = "10.20.204.87"
+    server_ip = "localhost"
     os.system(f'openssl req -x509 -newkey rsa:2048 -nodes -keyout {KEY_FILE} -out {CERT_FILE} -days 365 -subj "/CN={server_ip}" -addext "subjectAltName=IP:{server_ip},IP:127.0.0.1" 2>/dev/null')
     print(f"[SSL] Certificate generated for {server_ip}")
 

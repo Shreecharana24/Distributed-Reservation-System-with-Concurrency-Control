@@ -93,6 +93,7 @@ TCP Server (SSL/TLS + Threads)
 | -------------------------- | -------------------- |
 | `BOOK <seat1> <seat2> ...` | Book seats           |
 | `VIEW`                     | View available seats |
+| `CANCEL <seat1> <seat2> ...` | Cancel your previously booked seats |
 | `EXIT`                     | Disconnect           |
 
 ---
@@ -168,7 +169,14 @@ Place them in the root folder.
 
 ---
 
-### Step 4: Run the System
+### Step 4: Create server_ip.txt 
+
+Create a file named server_ip.txt in the project root and write your server's IP address in it.
+For running locally, write: 127.0.0.1
+
+---
+
+### Step 5: Run the System
 
 #### 1. Start TCP Server
 
@@ -222,6 +230,25 @@ Returns all seats and availability.
   "seats": ["A1", "A2"]
 }
 ```
+### POST /api/cancel  
+
+Cancel booked seats
+
+### /api/auth/register 
+
+Register a new user
+
+### POST /api/auth/login 
+
+Login and get JWT token
+
+### GET  /api/users/me/bookings 
+
+View your bookings
+
+### GET  /api/admin/dashboard 
+
+Admin view of all bookings
 
 ---
 
